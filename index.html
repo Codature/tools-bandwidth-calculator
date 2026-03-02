@@ -124,7 +124,7 @@
     font-size: 15px;
     font-family: 'DM Mono', monospace;
     line-height: 1.6;
-    max-width: 520px;
+   
   }
 
   .card {
@@ -505,9 +505,11 @@
 <div class="container">
 
   <header>
+    <a href="https://codature.net" target="_blank">
     <div class="logo-mark">
      <img class="logo-text" src="./Vector-1.svg" />
     </div>
+    </a>
   </header>
 
   <div class="hero">
@@ -537,6 +539,7 @@
             <option value="25000">25 Gbps</option>
             <option value="40000">40 Gbps</option>
             <option value="100000">100 Gbps</option>
+            <option value="400000">400 Gbps</option>
           </select>
           <span class="select-arrow">▼</span>
         </div>
@@ -556,7 +559,6 @@
       <input type="hidden" id="percentile" value="95">
     </div>
 
-    <button class="calc-btn" onclick="calculate()">Calculate Bandwidth →</button>
   </div>
 
   <!-- Results Card -->
@@ -677,7 +679,7 @@
       `the <span class="highlight">${ordinal(pct)} percentile</span> method collects ~${totalSamples.toLocaleString()} five-minute samples per month and discards the top <span class="highlight">${discardedSamples.toLocaleString()} (${100-pct}%)</span> — your burst headroom. ` +
       `You're billed at the highest remaining sample: <span class="highlight">${formatMbps(commitMbps)}</span>. ` +
       `Running at that rate for a full 30-day month transfers <span class="highlight">${formatTB(commitTB)}</span>. ` +
-      `The port's absolute ceiling is <span class="highlight">${formatTB(portMaxTB)}</span> — your commit uses <span class="highlight">${portUtilPct.toFixed(1)}%</span> of it.`;
+      `The port's absolute ceiling is <span class="highlight">${formatTB(portMaxTB)}</span> — your commit uses <span class="highlight">${portUtilPct.toFixed(1)}%</span> of it. Remember, since these are samples and percentiles, you technically have wiggle room above the max TB per month before your upstream bills you for overage.`;
 
     const r = document.getElementById('results');
     r.classList.add('visible');
