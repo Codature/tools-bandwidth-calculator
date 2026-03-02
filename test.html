@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bandwidth Calculator — codature.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@300;400;600&family=Instrument+Sans:wght@300;400;500&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green: #76FF7A;
+    --cyan: #00CDFF;
+    --orange: #FF9523;
+    --bg: #0a0a0a;
+    --bg2: #111111;
+    --bg3: #181818;
+    --border: rgba(118,255,122,0.15);
+    --text: #ffffff;
+    --muted: rgba(255,255,255,0.45);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Instrument Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(118,255,122,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(118,255,122,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    top: -200px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(118,255,122,0.06) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 48px 24px 80px;
+  }
+
+  header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 56px;
+  }
+
+  .logo-mark {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    width: 50px;
+    height: 50px;
+  }
+
+  .wifi-icon {
+    width: 32px;
+    height: 32px;
+    position: relative;
+    margin-right: 4px;
+  }
+
+  .wifi-icon span {
+    display: block;
+    position: absolute;
+    border: 3px solid var(--green);
+    border-bottom: none;
+    border-radius: 50% 50% 0 0;
+  }
+  .wifi-icon span:nth-child(1) { width: 32px; height: 20px; top: 4px; left: 0; }
+  .wifi-icon span:nth-child(2) { width: 20px; height: 12px; top: 10px; left: 6px; }
+  .wifi-icon span:nth-child(3) { width: 8px; height: 5px; top: 16px; left: 12px; border-radius: 50% 50% 0 0; }
+
+  .logo-text {
+     width: 250px; 
+  height: auto; 
+  }
+
+  .logo-text .dot {
+    color: var(--green);
+  }
+
+  .hero {
+    margin-bottom: 48px;
+  }
+
+  .hero h1 {
+    font-family: 'League Spartan', sans-serif;
+    font-size: clamp(32px, 5vw, 52px);
+    font-weight: 300;
+    line-height: 1.0;
+    letter-spacing: -0.5px;
+    margin-bottom: 12px;
+  }
+
+  .hero h1 .accent { color: var(--green); }
+
+  .hero p {
+    color: var(--muted);
+    font-size: 15px;
+    font-family: 'DM Mono', monospace;
+    line-height: 1.6;
+    max-width: 520px;
+  }
+
+  .card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 36px;
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--green), transparent);
+  }
+
+  .card-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--green);
+    margin-bottom: 28px;
+  }
+
+  .inputs-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 28px;
+  }
+
+  @media (max-width: 580px) {
+    .inputs-grid { grid-template-columns: 1fr; }
+  }
+
+  .input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .input-group label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--muted);
+  }
+
+  .input-wrap {
+    display: flex;
+    align-items: center;
+    background: var(--bg3);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .input-wrap:focus-within {
+    border-color: var(--green);
+    box-shadow: 0 0 0 3px rgba(118,255,122,0.08);
+  }
+
+  .input-wrap input {
+    flex: 1;
+    background: none;
+    border: none;
+    outline: none;
+    padding: 12px 16px;
+    font-family: 'DM Mono', monospace;
+    font-size: 18px;
+    font-weight: 300;
+    color: var(--text);
+    width: 100%;
+    -moz-appearance: textfield;
+  }
+
+  input::-webkit-outer-spin-button,
+  input::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+  .input-unit {
+    padding: 0 14px 0 8px;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  select {
+    flex: 1;
+    background: none;
+    border: none;
+    outline: none;
+    padding: 12px 16px;
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    color: var(--text);
+    cursor: pointer;
+    appearance: none;
+    width: 100%;
+  }
+
+  select option { background: #1a1a1a; }
+
+  .select-arrow {
+    padding-right: 14px;
+    color: var(--muted);
+    font-size: 10px;
+    pointer-events: none;
+  }
+
+  .percentile-section {
+    margin-bottom: 28px;
+  }
+
+  .percentile-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .percentile-label span {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--muted);
+  }
+
+  .percentile-label .p-val {
+    font-family: 'League Spartan', monospace;
+    font-size: 20px;
+    font-weight: 400;
+    color: var(--green);
+  }
+
+  input[type=range] {
+    display: none;
+  }
+
+  .pct-buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+  }
+
+  @media (max-width: 480px) {
+    .pct-buttons { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  .pct-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 14px 10px;
+    background: var(--bg3);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    color: var(--muted);
+    font-family: 'League Spartan', sans-serif;
+    font-size: 18px;
+    font-weight: 400;
+    cursor: pointer;
+    transition: all 0.18s;
+  }
+
+  .pct-btn span {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    font-weight: 300;
+    letter-spacing: 0.5px;
+    color: rgba(255,255,255,0.25);
+    transition: color 0.18s;
+    pointer-events: none;
+  }
+
+  .pct-btn:hover {
+    border-color: rgba(118,255,122,0.3);
+    color: #fff;
+  }
+
+  .pct-btn:hover span { color: rgba(255,255,255,0.5); }
+
+  .pct-btn.active {
+    background: rgba(118,255,122,0.08);
+    border-color: var(--green);
+    color: var(--green);
+    box-shadow: 0 0 16px rgba(118,255,122,0.1);
+  }
+
+  .pct-btn.active span { color: rgba(118,255,122,0.6); }
+
+  .range-ticks { display: none; }
+
+  .calc-btn {
+    width: 100%;
+    padding: 16px;
+    background: var(--green);
+    color: #000;
+    border: none;
+    border-radius: 10px;
+    font-family: 'League Spartan', sans-serif;
+    font-size: 16px;
+    font-weight: 400;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+  }
+
+  .calc-btn:hover {
+    background: #90ff93;
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px rgba(118,255,122,0.25);
+  }
+
+  .calc-btn:active { transform: translateY(0); }
+
+  .results-card {
+    background: var(--bg2);
+    border: 1px solid rgba(0,205,255,0.2);
+    border-radius: 16px;
+    padding: 36px;
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+    opacity: 0;
+    transform: translateY(16px);
+    transition: all 0.4s ease;
+  }
+
+  .results-card.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .results-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--cyan), transparent);
+  }
+
+  .results-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-bottom: 28px;
+  }
+
+  @media (max-width: 580px) {
+    .results-grid { grid-template-columns: 1fr; }
+  }
+
+  .result-item {
+    background: var(--bg3);
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid rgba(255,255,255,0.05);
+    transition: border-color 0.2s;
+  }
+
+  .result-item.primary {
+    border-color: rgba(118,255,122,0.3);
+    background: rgba(118,255,122,0.05);
+  }
+
+  .result-item.secondary {
+    border-color: rgba(0,205,255,0.2);
+  }
+
+  .result-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  .result-value {
+    font-family: 'League Spartan', sans-serif;
+    font-size: clamp(22px, 3vw, 32px);
+    font-weight: 400;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .result-value.green { color: var(--green); }
+  .result-value.cyan { color: var(--cyan); }
+  .result-value.orange { color: var(--orange); }
+
+  .result-sub {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+  }
+
+  .explanation {
+    background: rgba(0,205,255,0.04);
+    border: 1px solid rgba(0,205,255,0.1);
+    border-radius: 10px;
+    padding: 20px;
+    margin-top: 4px;
+  }
+
+  .explanation p {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    line-height: 1.8;
+    color: rgba(255,255,255,0.6);
+  }
+
+  .explanation .highlight {
+    color: var(--cyan);
+    font-weight: 500;
+  }
+
+  .bar-section {
+    margin-top: 24px;
+  }
+
+  .bar-label {
+    display: flex;
+    justify-content: space-between;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  .bar-track {
+    height: 8px;
+    background: var(--bg3);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 12px;
+  }
+
+  .bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    width: 0%;
+  }
+
+  .bar-fill.green { background: linear-gradient(90deg, #4dff52, var(--green)); }
+  .bar-fill.cyan { background: linear-gradient(90deg, #0099cc, var(--cyan)); }
+  .bar-fill.orange { background: linear-gradient(90deg, #cc7000, var(--orange)); }
+
+  footer {
+    text-align: center;
+    margin-top: 48px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: rgba(255,255,255,0.15);
+    letter-spacing: 1px;
+  }
+
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 28px 0;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div class="logo-mark">
+     <img class="logo-text" src="./Vector-1.svg" />
+    </div>
+  </header>
+
+  <div class="hero">
+    <h1>95th Percentile<br><span class="accent">Bandwidth Calculator</span></h1>
+    <p>// calculate your monthly TB usage from a Mbps commit on a given port speed using 95/5 billing</p>
+  </div>
+
+  <!-- Input Card -->
+  <div class="card">
+    <div class="card-title">// input parameters</div>
+
+    <div class="inputs-grid">
+      <div class="input-group">
+        <label>Commit (95th percentile)</label>
+        <div class="input-wrap">
+          <input type="number" id="commit" value="1000" min="0" step="1">
+          <span class="input-unit">Mbps</span>
+        </div>
+      </div>
+
+      <div class="input-group">
+        <label>Port Speed</label>
+        <div class="input-wrap">
+          <select id="portSpeed">
+            <option value="1000">1 Gbps</option>
+            <option value="10000" selected>10 Gbps</option>
+            <option value="25000">25 Gbps</option>
+            <option value="40000">40 Gbps</option>
+            <option value="100000">100 Gbps</option>
+          </select>
+          <span class="select-arrow">▼</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="percentile-section">
+      <div class="percentile-label">
+        <span>Billing Percentile (top % discarded)</span>
+      </div>
+      <div class="pct-buttons">
+        <button class="pct-btn" data-value="90">90th<span>10% off</span></button>
+        <button class="pct-btn active" data-value="95">95th<span>5% off</span></button>
+        <button class="pct-btn" data-value="98">98th<span>2% off</span></button>
+        <button class="pct-btn" data-value="99">99th<span>1% off</span></button>
+      </div>
+      <input type="hidden" id="percentile" value="95">
+    </div>
+
+    <button class="calc-btn" onclick="calculate()">Calculate Bandwidth →</button>
+  </div>
+
+  <!-- Results Card -->
+  <div class="results-card" id="results">
+    <div class="card-title">// results</div>
+
+    <div class="results-grid">
+      <div class="result-item primary">
+        <div class="result-label">Commit at 95th pct</div>
+        <div class="result-value green" id="r-commit">—</div>
+        <div class="result-sub">Mbps sustained</div>
+      </div>
+      <div class="result-item">
+        <div class="result-label">Monthly TB Usage</div>
+        <div class="result-value cyan" id="r-monthly">—</div>
+        <div class="result-sub">at commit rate</div>
+      </div>
+      <div class="result-item">
+        <div class="result-label">Max Possible (port)</div>
+        <div class="result-value orange" id="r-max">—</div>
+        <div class="result-sub">at 100% utilization</div>
+      </div>
+    </div>
+
+    <div class="bar-section">
+      <div class="bar-label">
+        <span>COMMIT VS PORT CAPACITY</span>
+        <span id="r-pct-label">—%</span>
+      </div>
+      <div class="bar-track"><div class="bar-fill green" id="bar-commit"></div></div>
+
+      <div class="bar-label">
+        <span>MONTHLY USAGE VS MAX POSSIBLE</span>
+        <span id="r-usage-label">—%</span>
+      </div>
+      <div class="bar-track"><div class="bar-fill cyan" id="bar-usage"></div></div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="explanation">
+      <p id="explanation-text"></p>
+    </div>
+  </div>
+
+  <footer>CODATURE LLC © 2026</footer>
+
+</div>
+
+<script>
+  document.querySelectorAll('.pct-btn').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+      const target = e.target.closest('.pct-btn');
+      if (!target) return;
+      document.querySelectorAll('.pct-btn').forEach(b => b.classList.remove('active'));
+      target.classList.add('active');
+      document.getElementById('percentile').value = target.dataset.value;
+      calculate();
+    });
+  });
+
+  ['commit','portSpeed'].forEach(id => {
+    document.getElementById(id).addEventListener('input', calculate);
+    document.getElementById(id).addEventListener('change', calculate);
+  });
+
+  function ordinal(n) {
+    const s = ['th','st','nd','rd'];
+    const v = n % 100;
+    return n + (s[(v-20)%10] || s[v] || s[0]);
+  }
+
+  function formatTB(tb) {
+    if (tb >= 1000) return (tb/1000).toFixed(2) + ' PB';
+    if (tb >= 1) return tb.toFixed(2) + ' TB';
+    return (tb * 1000).toFixed(1) + ' GB';
+  }
+
+  function formatMbps(mbps) {
+    if (mbps >= 1000) return (mbps/1000).toFixed(1) + ' Gbps';
+    return mbps.toFixed(0) + ' Mbps';
+  }
+
+  function calculate() {
+    const commitMbps = parseFloat(document.getElementById('commit').value) || 0;
+    const portMbps   = parseFloat(document.getElementById('portSpeed').value) || 10000;
+    const pct        = parseInt(document.getElementById('percentile').value) || 95;
+    const discardFrac = (100 - pct) / 100; // e.g. 0.05 for 95th
+
+
+    const secondsPerMonth = 30 * 24 * 3600;
+    const commitTB = (commitMbps * 1e6 * secondsPerMonth) / (8 * 1e12);
+    const portMaxTB = (portMbps * 1e6 * secondsPerMonth) / (8 * 1e12);
+
+    const portUtilPct = Math.min((commitMbps / portMbps) * 100, 100);
+    const usageVsMaxPct = Math.min((commitTB / portMaxTB) * 100, 100);
+
+    document.querySelector('#results .result-item.primary .result-label').textContent =
+      `Commit at ${ordinal(pct)} pct`;
+
+    document.getElementById('r-commit').textContent = formatMbps(commitMbps);
+    document.getElementById('r-monthly').textContent = formatTB(commitTB);
+    document.getElementById('r-max').textContent = formatTB(portMaxTB);
+    document.getElementById('r-pct-label').textContent = portUtilPct.toFixed(1) + '%';
+    document.getElementById('r-usage-label').textContent = usageVsMaxPct.toFixed(1) + '%';
+
+
+    setTimeout(() => {
+      document.getElementById('bar-commit').style.width = portUtilPct + '%';
+      document.getElementById('bar-usage').style.width = usageVsMaxPct + '%';
+    }, 50);
+
+    const totalSamples = Math.round(secondsPerMonth / 300);
+    const discardedSamples = Math.round(totalSamples * discardFrac);
+
+    document.getElementById('explanation-text').innerHTML =
+      `With a <span class="highlight">${formatMbps(commitMbps)} commit</span> on a <span class="highlight">${formatMbps(portMbps)} port</span>, ` +
+      `the <span class="highlight">${ordinal(pct)} percentile</span> method collects ~${totalSamples.toLocaleString()} five-minute samples per month and discards the top <span class="highlight">${discardedSamples.toLocaleString()} (${100-pct}%)</span> — your burst headroom. ` +
+      `You're billed at the highest remaining sample: <span class="highlight">${formatMbps(commitMbps)}</span>. ` +
+      `Running at that rate for a full 30-day month transfers <span class="highlight">${formatTB(commitTB)}</span>. ` +
+      `The port's absolute ceiling is <span class="highlight">${formatTB(portMaxTB)}</span> — your commit uses <span class="highlight">${portUtilPct.toFixed(1)}%</span> of it.`;
+
+    const r = document.getElementById('results');
+    r.classList.add('visible');
+  }
+
+  calculate();
+</script>
+</body>
+</html>
